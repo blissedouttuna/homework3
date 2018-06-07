@@ -1,0 +1,80 @@
+---
+title: "Homework3"
+author: "Josh Graybiel"
+date: "June 4, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Generating sample data for fish species and locations to be used for the fisheries function
+
+```{}
+library(tidyverse)
+library(devtools)
+library(roxygen2)
+devtools::load_all('./fisheriesandgrowthhw3')
+```
+
+
+#Creating Data to run into the function
+```{}
+#creating a list of fish species
+somefish = c("walleye", "bluegill", "perch", "sturgeon", "trout")
+
+#prices for each fish
+prices = data.frame(fish=somefish, price= c(10, 4, 20, 30, 8))
+
+#creating locations
+locs = c("Mackinac_Island" , "Beaver_Island", "Black_River", "Saginaw_Bay", "Y_Camp_Lake")
+
+#Creating a matrix of fish and locations
+example_catch = matrix(nrow=length(somefish), ncol=length(locs) )
+colnames(example_catch)= locs
+rownames(example_catch)= somefish
+
+#giving the fish species and the number of fish caught in locations
+locs = data.frame(name=locs, size= c(4000, 2000, 6000, 100, 9000))
+
+#creating population size for fish
+for (i in 1: length(somefish)) {
+  for (j in 1:nrow(locs)){
+    example_catch[i,j] = round(rnorm(mean=locs$size[j], sd=0.1*locs$size[j], n=1))
+  }
+}
+
+fisheries_summary(catches=example_catch, prices=prices, plot=TRUE)
+```
+
+## Growth Rate Function using parameters from the Bjoornsson et al experiment for Growth Model for Atlantic cod; Effects of termperature and body weight on growth rate
+
+``` {}
+#Experiment A in Table 2 has the following inputs: Temp = 14.3, a= -0.4970 , b= 0.1656, c= 0.08588, d= -0.004266
+
+#Plugging this into the growthrate equation
+growthrate(14.3, a= -0.4970 , b= 0.1656, c= 0.08588, d= -0.004266)
+#result = 6.96 the optimal specific growth rate 
+```
+
+## Testing the growthrate Function and the fisheries_summary function ###
+
+``` {}
+library(devtools)
+library(testthat)
+
+#testing for output expectations
+
+fisheries_summary(price=prices, catches=example_catch)
+expect_that(fisheries_summary, equals(1000))
+
+###Returns: Error: `x` not equal to `expected`.
+Modes of target, current: function, numeric
+target, current do not match when deparsed###
+
+#expect that and testing if we are using reasonable inputs
+Temp = -500
+foo<- expect_that(growthrate(Temp, a= -0.4970 , b= 0.1656, c= 0.08588, d= -0.004266) <0, is_true())
+## Error: 'x' isn't true. 
+
